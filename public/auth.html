@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso | ConsoleWorld</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="logo" style="justify-content: center; margin-bottom: 2rem;">
+                <i class="fa-solid fa-gamepad"></i> CONSOLE<span class="logo-accent">WORLD</span>
+            </div>
+            <h2 id="auth-title">Iniciar Sesión</h2>
+            <form id="auth-form">
+                <div id="name-field" style="display: none;">
+                    <input type="text" id="fullname" placeholder="Nombre Completo">
+                </div>
+                
+                <input type="email" id="email" placeholder="Correo Electrónico" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                
+                <button type="submit" class="btn-main" id="btn-text">Entrar</button>
+            </form>
+            
+            <p id="toggle-auth">¿No tienes cuenta? <span onclick="toggleAuth()">Regístrate aquí</span></p>
+            <a href="index.html" class="back-link">← Volver a la tienda</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btnText = document.getElementById('btn-text');
+            const originalText = btnText.innerText;
+            btnText.innerText = 'Cargando...';
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            let payload = { correo: email, password: password };
+            
+            let url = '/api/login';
+            if (!isLogin) {
+                url = '/api/registro';
+                payload.nombre = document.getElementById('fullname').value || 'Usuario Gamer';
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (!isLogin) {
+                        alert("Cuenta creada exitosamente. Iniciando sesión...");
+                        // Iniciar sesión automático al registrar
+                        const resLogin = await fetch('/api/login', {
+                           method: 'POST',
+                           headers: { 'Content-Type': 'application/json' },
+                           body: JSON.stringify({ correo: email, password: password })
+                        });
+                        const dataLogin = await resLogin.json();
+                        localStorage.setItem('currentUser', JSON.stringify(dataLogin.user));
+                    } else {
+                        localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    }
+                    window.location.href = 'index.html';
+                } else {
+                    alert("Error: " + data.error);
+                    btnText.innerText = originalText;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error de conexión al servidor MySQL.");
+                btnText.innerText = originalText;
+            }
+        });
+
+        let isLogin = true;
+        window.toggleAuth = function() {
+            isLogin = !isLogin;
+            const nameField = document.getElementById('name-field');
+            const authTitle = document.getElementById('auth-title');
+            const btnText = document.getElementById('btn-text');
+            const toggleText = document.getElementById('toggle-auth');
+
+            if (isLogin) {
+                authTitle.innerText = 'Iniciar Sesión';
+                btnText.innerText = 'Entrar';
+                nameField.style.display = 'none';
+                toggleText.innerHTML = '¿No tienes cuenta? <span onclick="toggleAuth()">Regístrate aquí</span>';
+            } else {
+                authTitle.innerText = 'Crear Cuenta';
+                btnText.innerText = 'Registrarse';
+                nameField.style.display = 'block';
+                toggleText.innerHTML = '¿Ya tienes cuenta? <span onclick="toggleAuth()">Inicia sesión</span>';
+            }
+        };
+    </script>
+</body>
+</html>
