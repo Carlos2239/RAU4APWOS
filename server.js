@@ -12,11 +12,21 @@ app.use(express.static('public'));
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
-    host: process.env.MYSQLHOST || 'rau4apwos.railway.internal',
-    user: process.env.MYSQLUSER || 'root',
-    password: process.env.MYSQLPASSWORD || '',
-    database: process.env.MYSQL_DATABASE || 'railway',
+    // Busca MYSQLHOST (estándar Railway) o MYSQL_HOST (el que tenías antes)
+    host: process.env.MYSQLHOST || process.env.MYSQL_HOST || 'mysql.railway.internal',
+
+    // Busca MYSQLUSER o MYSQL_USER
+    user: process.env.MYSQLUSER || process.env.MYSQL_USER || 'root',
+
+    // Busca MYSQLPASSWORD o MYSQL_PASSWORD
+    password: process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || '',
+
+    // Busca MYSQLDATABASE, MYSQL_DATABASE o MYSQL_NAME
+    database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || process.env.MYSQL_NAME || 'railway',
+
+    // Puerto estándar
     port: process.env.MYSQLPORT || 3306,
+
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
